@@ -1,0 +1,45 @@
+services:
+  app:
+    build: .
+    image: martin/tf-gpu-nvitop:latest
+    container_name: tf-gpu
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - CUDA_VISIBLE_DEVICES=0
+      - CUDA_HOME=/usr/local/cuda
+      - LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64
+      - CUDA_CACHE_DISABLE=1
+      - TF_CPP_MIN_LOG_LEVEL=0
+      - TF_FORCE_GPU_ALLOW_GROWTH=true
+      - JUPYTER_PORT=8888
+      - NVITOP_EXPORTER_PORT=9000
+      - TZ=Europe/Prague
+    ports:
+      - "8888:8888"
+      - "9000:9000"
+    volumes:
+      - ./workspace:/workspace
+    shm_size: "8gb"
+
+  syncthing:
+    image: lscr.io/linuxserver/syncthing:latest
+    container_name: syncthing
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Prague
+    volumes:
+      - syncthing-config:/config
+      - ./workspace:/data
+    ports:
+      - 8384:8384
+      - 22000:22000
+      - 22000:22000/udp
+      - 21027:21027/udp
+    restart: unless-stopped
+
+volumes:
+  syncthing-config:
+    driver: local
